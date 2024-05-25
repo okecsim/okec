@@ -1,6 +1,9 @@
 #ifndef OKEC_RANDOM_HPP_
 #define OKEC_RANDOM_HPP_
 
+#include <concepts>
+#include <random>
+#include <type_traits>
 #include <fmt/core.h>
 #include <torch/torch.h>
 
@@ -45,6 +48,45 @@ struct rand_range {
 
 private:
     T val;
+};
+
+template <typename T>
+auto rand_value_impl() -> T {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    if constexpr (std::is_floating_point_v<T>) {
+        std::uniform_real_distribution<T> dis;
+        return dis(gen);
+    } else {
+        std::uniform_int_distribution<T> dis;
+        return dis(gen);
+    }
+}
+
+template <class T>
+requires std::is_floating_point_v<std::remove_cvref_t<T>>
+    || std::is_integral_v<std::remove_cvref_t<T>>
+class rand_value {
+    using value_type = std::remove_cvref_t<T>;
+
+public:
+    rand_value()
+        : val{ rand_value_impl<value_type>() } {}
+
+    operator value_type() const {
+        return val;
+    }
+
+    auto to_string(int precision = 2) -> std::string {
+        if constexpr (std::is_floating_point_v<value_type>) {
+            return fmt::format("{:.{}f}", val, precision);
+        }
+        
+        return fmt::format("{}", val);
+    }
+
+private:
+    value_type val;
 };
 
 } // namespace okec

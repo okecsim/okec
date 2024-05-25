@@ -5,7 +5,7 @@ using namespace okec;
 void generate_task(okec::task &t, int number, const std::string& group) {
     for ([[maybe_unused]] auto _ : std::views::iota(0, number)) {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(10, 100).to_string() },

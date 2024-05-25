@@ -149,7 +149,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -189,7 +189,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -237,7 +237,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -283,7 +283,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -402,7 +402,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -472,7 +472,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -551,7 +551,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -621,7 +621,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
@@ -675,7 +675,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
     for (auto i = number; i-- > 0;)
     {
         t.emplace_back({
-            { "task_id", okec::task::get_unique_id() },
+            { "task_id", okec::task::unique_id() },
             { "group", group },
             { "cpu", okec::rand_range(0.2, 1.2).to_string() },
             { "deadline", okec::rand_range(1, 5).to_string() },
