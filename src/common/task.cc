@@ -168,7 +168,7 @@ auto task::from_msg_packet(ns3::Ptr<ns3::Packet> packet) -> task
     return task{};
 }
 
-auto task::emplace_back(task_header_t header_attrs, task_body_t body_attrs) -> void
+auto task::emplace_back(task_header header_attrs, task_body body_attrs) -> void
 {
     json item;
     // Set header attributes

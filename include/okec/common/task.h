@@ -66,7 +66,7 @@ public:
 
     static auto from_msg_packet(ns3::Ptr<ns3::Packet> packet) -> task;
 
-    auto emplace_back(task_header_t, task_body_t = {}) -> void;
+    auto emplace_back(task_header, task_body = {}) -> void;
     
     auto dump(int indent = -1) const -> std::string;
 

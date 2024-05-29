@@ -12,10 +12,12 @@
 #define OKEC_HPP_
 
 #include <okec/algorithms/classic/worst_fit_decision_engine.h>
+#include <okec/algorithms/classic/cloud_edge_end_default_decision_engine.h>
 #include <okec/algorithms/machine_learning/DQN_decision_engine.h>
 #include <okec/common/simulator.h>
 #include <okec/network/multiple_and_single_LAN_WLAN_network_model.hpp>
 #include <okec/network/multiple_LAN_WLAN_network_model.hpp>
+#include <okec/network/cloud_edge_end_model.hpp>
 #include <okec/utils/log.h>
 #include <okec/utils/random.hpp>
 #include <okec/utils/read_csv.h>

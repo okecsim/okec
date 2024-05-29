@@ -197,6 +197,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
                 }
 
                 // print_info(fmt::format("The decision engine got the resource information of edge device({}).", (*item)["ip"]));
+                log::debug("The decision engine got the resource information of edge device({}).", (*item)["ip"].template get<std::string>());
             } else {
                 // 说明设备此时还未绑定资源，通过网络询问一下
                 ns3::Simulator::Schedule(ns3::Seconds(delay), +[](const std::shared_ptr<base_station> socket, const ns3::Ipv4Address& ip, uint16_t port) {
