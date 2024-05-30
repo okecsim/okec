@@ -17,6 +17,7 @@ void generate_task(okec::task &t, int number, const std::string& group) {
 
 int main(int argc, char **argv)
 {
+    okec::log::set_level(okec::log::level::all);
 
     std::size_t edge_num = 5;
     std::size_t task_num = 10;

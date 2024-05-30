@@ -158,7 +158,6 @@ auto worst_fit_decision_engine::initialize() -> void
 
 auto worst_fit_decision_engine::handle_next() -> void
 {
-
     auto& task_sequence = m_decision_device->task_sequence();
     // auto& task_sequence_status = m_decision_device->task_sequence_status();
     log::info("handle_next.... current task sequence size: {}", task_sequence.size());

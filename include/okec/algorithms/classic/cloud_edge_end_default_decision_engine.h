@@ -29,6 +29,8 @@ public:
 
     auto initialize() -> void override;
 
+    auto train(const task& train_task, int episode = 1) -> void;
+
     auto handle_next() -> void override;
 
 private:
@@ -40,7 +42,7 @@ private:
     
     auto on_clients_reponse_message(client_device* client, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) -> void;
 
-    auto on_cloud_handling_message(cloud_server* es, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) -> void;
+    auto on_cloud_handling_message(cloud_server* cs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) -> void;
 
 private:
     client_device_container* clients_{};

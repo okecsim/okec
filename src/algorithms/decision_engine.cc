@@ -266,6 +266,21 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
             // 继续处理下一个任务的分发
             bs->handle_next();
         });
+
+    // 捕获资源冲突问题
+    bs_container->set_request_handler(message_conflict,
+        [this](okec::base_station* bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) {
+            auto task_item = task_element::from_msg_packet(packet);
+            // fmt::print("资源冲突\n{}\n", task_item.dump());
+            auto& task_sequence = bs->task_sequence();
+            if (auto it = std::ranges::find_if(task_sequence, [&task_item](auto const& item) {
+                return item.get_header("task_id") == task_item.get_header("task_id");
+            }); it != std::end(task_sequence)) {
+                // fmt::print("找到了 {} status: {}\n", (*it).get_header("task_id"), (*it).get_header("status"));
+                (*it).set_header("status", "0");
+                bs->handle_next(); // 重新处理
+            }
+        });
 }
 
 auto decision_engine::initialize_device(base_station_container* bs_container) -> void
