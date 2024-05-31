@@ -123,6 +123,16 @@ auto decision_engine::calculate_distance(const ns3::Vector& pos) -> double
     return std::sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
 }
 
+auto decision_engine::calculate_distance(double x, double y, double z) -> double
+{
+    ns3::Vector this_pos = m_decision_device->get_position();
+    double delta_x = this_pos.x - x;
+    double delta_y = this_pos.y - y;
+    double delta_z = this_pos.z - z;
+
+    return std::sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+}
+
 auto decision_engine::initialize_device(base_station_container* bs_container, cloud_server* cs) -> void
 {
     // Save a base station so we can utilize its communication component.

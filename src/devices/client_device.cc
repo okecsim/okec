@@ -116,6 +116,12 @@ auto client_device::set_position(double x, double y, double z) -> void
     }
 }
 
+auto client_device::get_position() -> ns3::Vector
+{
+    ns3::Ptr<ns3::MobilityModel> mobility = m_node->GetObject<ns3::MobilityModel>();
+    return mobility ? mobility->GetPosition() : ns3::Vector(-1.0, -1.0, -1.0);
+}
+
 auto client_device::set_decision_engine(std::shared_ptr<decision_engine> engine) -> void
 {
     m_decision_engine = engine;

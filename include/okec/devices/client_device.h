@@ -68,6 +68,7 @@ public:
     auto when_done(response_type res) -> void;
 
     auto set_position(double x, double y, double z) -> void;
+    auto get_position() -> ns3::Vector;
 
     auto set_decision_engine(std::shared_ptr<decision_engine> engine) -> void;
 
@@ -112,6 +113,14 @@ public:
     auto get_nodes(ns3::NodeContainer &nodes) -> void {
         for (auto& device : m_devices)
             nodes.Add(device->get_node());
+    }
+
+    auto begin() -> std::vector<pointer_type>::iterator {
+        return m_devices.begin();
+    }
+
+    auto end() -> std::vector<pointer_type>::iterator {
+        return m_devices.end();
     }
 
     auto get_device(std::size_t index) -> pointer_type;

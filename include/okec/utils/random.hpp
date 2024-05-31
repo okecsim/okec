@@ -89,6 +89,21 @@ private:
     value_type val;
 };
 
+inline double rand_rayleigh(double scale = 1.0) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    
+    // Create a normal distribution with mean 0 and standard deviation 1
+    static std::normal_distribution<double> distribution(0.0, 1.0);
+    
+    // Generate two independent standard normal random variables
+    double x = distribution(gen);
+    double y = distribution(gen);
+    
+    // Use the Rayleigh distribution formula: sigma * sqrt(X^2 + Y^2)
+    return scale * std::sqrt(x * x + y * y);
+}
+
 } // namespace okec
 
 #endif // OKEC_RANDOM_HPP_

@@ -5,7 +5,11 @@
 #include <okec/devices/cloud_server.h>
 #include <okec/devices/edge_device.h>
 #include <okec/utils/log.h>
+#include <okec/utils/random.hpp>
+#include <cmath>
 #include <functional> // bind_front
+#include <numbers>
+#include <ns3/wifi-module.h>
 
 
 namespace okec
@@ -59,7 +63,7 @@ auto cloud_edge_end_default_decision_engine::make_decision(
     double cpu_demand = std::stod(header.get_header("cpu"));
     double cpu_supply = TO_DOUBLE(edge_max["cpu"]);
     double tolorable_time = std::stod(header.get_header("deadline"));
-    [[maybe_unused]] double size = std::stod(header.get_header("size"));
+    double task_size = std::stod(header.get_header("size"));
 
     // okec::print("cpu_demand: {}, cpu_supply: {}, tolorable_time: {}, size: {}\n", cpu_demand, cpu_supply, tolorable_time, size);
 
@@ -84,10 +88,19 @@ auto cloud_edge_end_default_decision_engine::make_decision(
     });
     if (it != this->cache().end()) {
         const auto& device = *it;
+
+        double cs_x = TO_DOUBLE(device["pos_x"]);
+        double cs_y = TO_DOUBLE(device["pos_y"]);
+        double cs_z = TO_DOUBLE(device["pos_z"]);
+        double b2c_distance = this->calculate_distance(cs_x, cs_y, cs_z);
+        double transmission_delay = task_size / 30 + b2c_distance / 200000000 + 0.02;
+        log::warning("B2C distance is {}m. transmission delay is {}s.", b2c_distance, transmission_delay);
+
         return {
             { "ip", device["ip"] },
             { "port", device["port"] },
-            { "type", "cs" }
+            { "type", "cs" },
+            { "transmission_delay",  std::to_string(transmission_delay) }
         };
     }
 
@@ -117,15 +130,44 @@ auto cloud_edge_end_default_decision_engine::send(
     });
 
     // fmt::print("Received tasks:\n{}\n", t.j_data().dump(4));
+    double task_size = std::stod(t.get_header("size"));
+
+    // 获取 STA 的 PHY 和 MAC 层对象
+    ns3::Ptr<ns3::NetDevice> device = client->get_node()->GetDevice(0);
+    ns3::Ptr<ns3::WifiNetDevice> wifiDevice = ns3::DynamicCast<ns3::WifiNetDevice>(device);
+    ns3::Ptr<ns3::WifiPhy> phyClient = wifiDevice->GetPhy();
+
+    // 获取 STA 的传输速率
+    uint16_t channelWidth = phyClient->GetChannelWidth();
+    double txPowerStart = phyClient->GetTxPowerStart();
+    double txPowerEnd = phyClient->GetTxPowerEnd();
+    okec::print("Channel width: {}MHz, txPowerStart: {}dBm, txPowerEnd: {}dBm, GetPowerDbm: {}dBm\n", 
+        channelWidth, txPowerStart, txPowerEnd, phyClient->GetPowerDbm(txPowerStart));
+
+    // okec::print("rayleigh number1: {}\n", rand_rayleigh());
+    // okec::print("rayleigh number2: {}\n", rand_rayleigh());
+    
 
     // 不管本地，全部往边缘服务器卸载
     t.set_header("from_ip", fmt::format("{:ip}", client->get_address()));
     t.set_header("from_port", std::to_string(client->get_port()));
+
     message msg;
     msg.type(message_decision);
     msg.content(t);
     const auto bs = this->get_decision_device();
-    auto write = [client, bs, content = msg.to_packet()]() {
+
+    auto write = [this, client, bs, task_size, channelWidth, txPowerStart, content = msg.to_packet()]() {
+        auto pos = client->get_position();
+        double u2b_distance = this->calculate_distance(pos.x, pos.y, pos.z);
+        // double transmission_delay = /*task_size / 30 + */u2b_distance / 200000 + 0.02;
+        log::warning("client position: [{},{},{}], U2B Distance: {}m", 
+            pos.x, pos.y, pos.z, u2b_distance);
+        double channel_gain = 4.11 * std::pow(3 * std::pow(10, 8) / (4 * std::numbers::pi * 915 * std::pow(10, 6) * u2b_distance), 2.8) * rand_rayleigh();
+        double transmission_rate = 2 * std::pow(10, 6) * std::log(1 + (0.1 * channel_gain) / std::pow(10, -10));
+        okec::print("channel gain: {}, transmission rate: {}\n", channel_gain, transmission_rate);
+
+
         client->write(content, bs->get_address(), bs->get_port());
     };
     ns3::Simulator::Schedule(ns3::Seconds(launch_delay), write);
@@ -172,12 +214,13 @@ auto cloud_edge_end_default_decision_engine::handle_next() -> void
         if (target["type"] == "es") {
             // okec::print("target ip: {}\n", TO_STR(target["ip"]));
             msg.attribute("cpu_supply", TO_STR(target["cpu_supply"]));
-            it->set_header("status", "1"); // 更改任务分发状态
         }
 
         // 卸载到云端
         if (target["type"] == "cs") {
             log::warning("Offloading to cloud");
+            // 记录传输延迟
+            it->set_header("transmission_delay", TO_STR(target["transmission_delay"]));
         }
 
         it->set_header("status", "1"); // 更改任务分发状态
@@ -212,6 +255,13 @@ auto cloud_edge_end_default_decision_engine::on_bs_response_message(
         return item.get_header("task_id") == msg.get_value("task_id");
     }); it != std::end(task_sequence)) {
         msg.attribute("group", (*it).get_header("group"));
+
+        // 记录云服务器的传输时延
+        auto transmission_delay = it->get_header("transmission_delay");
+        if (!transmission_delay.empty()) {
+            msg.attribute("transmission_delay", transmission_delay);
+        }
+
         auto from_ip = (*it).get_header("from_ip");
         auto from_port = (*it).get_header("from_port");
         bs->write(msg.to_packet(), ns3::Ipv4Address(from_ip.c_str()), std::stoi(from_port));
@@ -287,6 +337,7 @@ auto cloud_edge_end_default_decision_engine::on_clients_reponse_message(
     const ns3::Address &remote_address) -> void
 {
     message msg(packet);
+    log::success("{}", msg.dump());
 
     auto it = client->response_cache().find_if([&msg](const response::value_type& item) {
         return item["group"] == msg.get_value("group") && item["task_id"] == msg.get_value("task_id");

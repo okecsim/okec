@@ -52,6 +52,10 @@ int main()
     okec::cloud_edge_end_model model;
     okec::network_initializer(model, user_devices, base_stations.get(0), cloud);
 
+    // Set the location
+    base_stations.get(0)->set_position(0, 0, 0);
+    cloud.set_position(1000000, 0, 0);
+
     // Initialize the resources for each edge server.
     okec::resource_container resources(edge_servers.size());
     resources.initialize([](auto res) {
@@ -60,6 +64,11 @@ int main()
 
     // Install each resource on each edge server.
     edge_servers.install_resources(resources);
+
+    resources.trace_resource(); // 先捕捉初始值
+    resources.set_monitor([&resources](std::string_view address, std::string_view attr, std::string_view old_val, std::string_view new_val) {
+        resources.trace_resource();
+    });
 
     // Install resource on cloud server
     auto cloud_res = okec::make_resource();
