@@ -10,9 +10,9 @@ void generate_task(okec::task& t, int number, std::string const& group)
         t.emplace_back({
             { "task_id", okec::task::unique_id() },
             { "group", group },
-            { "size",  okec::rand_range(2, 5).to_string() },
+            { "size",  okec::rand_range(15, 20).to_string() },
             { "cpu", okec::rand_range(0.5, 1.5).to_string() },
-            { "deadline", okec::rand_range(2.0, 2.5).to_string() },
+            { "deadline", okec::rand_range(1.5, 2.0).to_string() },
         });
     }
 }
@@ -24,11 +24,22 @@ okec::awaitable offloading(auto user, okec::task t) {
     auto resp = co_await user->async_read();
     olog::success("received response.");
 
+    // okec::print("{}\n", resp.dump(2));
     okec::print("{:r}", resp);
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    std::size_t edge_num = 5;
+    std::size_t task_num = 10;
+
+    ns3::CommandLine cmd;
+	cmd.AddValue("edge_num", "edge number", edge_num);
+	cmd.AddValue("task_num", "task number", task_num);
+	cmd.Parse(argc, argv);
+
+    fmt::print("edge_num: {}, task_num: {}\n", edge_num, task_num);
+
     olog::set_level(olog::level::all);
 
     okec::simulator sim;
@@ -36,7 +47,7 @@ int main()
     // Create 1 base station
     okec::base_station_container base_stations(sim, 1);
     // Create 5 edge servers
-    okec::edge_device_container edge_servers(sim, 5);
+    okec::edge_device_container edge_servers(sim, edge_num);
     // Create 2 user devices
     okec::client_device_container user_devices(sim, 2);
     // Create a cloud
@@ -59,7 +70,7 @@ int main()
     // Initialize the resources for each edge server.
     okec::resource_container resources(edge_servers.size());
     resources.initialize([](auto res) {
-        res->attribute("cpu", okec::rand_range(2.1, 2.2).to_string());
+        res->attribute("cpu", okec::rand_range(2.1, 2.4).to_string());
     });
 
     // Install each resource on each edge server.
@@ -72,7 +83,7 @@ int main()
 
     // Install resource on cloud server
     auto cloud_res = okec::make_resource();
-    cloud_res->attribute("cpu", "50");
+    cloud_res->attribute("cpu", "20");
     cloud.install_resource(cloud_res);
 
     // Specify the default offloading strategy
@@ -81,7 +92,7 @@ int main()
 
 
     okec::task t;
-    generate_task(t, 10, "dummy");
+    generate_task(t, task_num, "dummy");
 
     auto user1 = user_devices.get_device(0);
     co_spawn(sim, offloading(user1, t));

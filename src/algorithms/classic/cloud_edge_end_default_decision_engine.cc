@@ -1,5 +1,6 @@
 #include <okec/algorithms/classic/cloud_edge_end_default_decision_engine.h>
 #include <okec/common/message.h>
+#include <okec/common/simulator.h>
 #include <okec/devices/base_station.h>
 #include <okec/devices/client_device.h>
 #include <okec/devices/cloud_server.h>
@@ -64,20 +65,27 @@ auto cloud_edge_end_default_decision_engine::make_decision(
     double cpu_supply = TO_DOUBLE(edge_max["cpu"]);
     double tolorable_time = std::stod(header.get_header("deadline"));
     double task_size = std::stod(header.get_header("size"));
+    double u2b_transmission_delay = std::stod(header.get_header("transmission_delay"));
+    double arrival_time = std::stod(header.get_header("arrival_time"));
+    double start_time = std::stod(fmt::format("{:.8f}", now::seconds())); // 保证位数一致，以防相减出现负数情况
+    double wait_time = start_time - arrival_time;
+    okec::print("wait time: {}s\n", wait_time);
 
     // okec::print("cpu_demand: {}, cpu_supply: {}, tolorable_time: {}, size: {}\n", cpu_demand, cpu_supply, tolorable_time, size);
 
-    if (cpu_supply >= cpu_demand) {
+    if (cpu_supply > 0) {
         double processing_time = cpu_demand / cpu_supply;
         // okec::print("processing time: {}\n", processing_time);
+        double total_delay = u2b_transmission_delay + processing_time + wait_time;
 
         // 能够满足时延要求
-        if (processing_time < tolorable_time) {
+        if (total_delay < tolorable_time) {
             return {
                 { "ip", edge_max["ip"] },
                 { "port", edge_max["port"] },
                 { "cpu_supply", std::to_string(cpu_supply) },
-                { "type", "es" }
+                { "type", "es" },
+                { "wait_time", std::to_string(wait_time) }
             };
         }
     }
@@ -92,16 +100,29 @@ auto cloud_edge_end_default_decision_engine::make_decision(
         double cs_x = TO_DOUBLE(device["pos_x"]);
         double cs_y = TO_DOUBLE(device["pos_y"]);
         double cs_z = TO_DOUBLE(device["pos_z"]);
-        double b2c_distance = this->calculate_distance(cs_x, cs_y, cs_z);
-        double transmission_delay = task_size / 30 + b2c_distance / 200000000 + 0.02;
-        log::warning("B2C distance is {}m. transmission delay is {}s.", b2c_distance, transmission_delay);
+        double cloud_cpu_supply = TO_DOUBLE(device["cpu"]);
+        double processing_time = cpu_demand / cloud_cpu_supply;
 
-        return {
-            { "ip", device["ip"] },
-            { "port", device["port"] },
-            { "type", "cs" },
-            { "transmission_delay",  std::to_string(transmission_delay) }
-        };
+        double b2c_distance = this->calculate_distance(cs_x, cs_y, cs_z);
+        double b2c_propagation_delay_and_network_latency = b2c_distance / 200000000;
+        // 到服务器考虑往返两次的传播时延和网络时延，传输时延由于回来时响应结果非常小，可以忽略不计
+        double b2c_bandwidth = 20.0;
+        double b2c_transmission_delay = task_size / b2c_bandwidth + b2c_propagation_delay_and_network_latency * 2;
+        double total_delay = processing_time + u2b_transmission_delay + b2c_transmission_delay + wait_time;
+        
+        // 能够满足时延要求
+        if (total_delay < tolorable_time) {
+            log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / 30, b2c_distance / 200000000);
+            log::warning("B2C distance is {}m. transmission delay is {}s.", b2c_distance, b2c_transmission_delay);
+            
+            return {
+                { "ip", device["ip"] },
+                { "port", device["port"] },
+                { "type", "cs" },
+                { "transmission_delay",  b2c_transmission_delay },
+                { "wait_time", std::to_string(wait_time) }
+            };
+        }
     }
 
     return result_t();
@@ -126,11 +147,12 @@ auto cloud_edge_end_default_decision_engine::send(
         { "finished", "0" }, // 0: unfinished, Y: finished, N: offloading failure
         { "device_type", "" },
         { "device_address", "" },
-        { "time_consuming", "" }
+        { "processing_delay", "" },
+        { "transmission_delay", "" },
+        { "wait_time", "" }
     });
 
     // fmt::print("Received tasks:\n{}\n", t.j_data().dump(4));
-    double task_size = std::stod(t.get_header("size"));
 
     // 获取 STA 的 PHY 和 MAC 层对象
     ns3::Ptr<ns3::NetDevice> device = client->get_node()->GetDevice(0);
@@ -152,23 +174,30 @@ auto cloud_edge_end_default_decision_engine::send(
     t.set_header("from_ip", fmt::format("{:ip}", client->get_address()));
     t.set_header("from_port", std::to_string(client->get_port()));
 
-    message msg;
-    msg.type(message_decision);
-    msg.content(t);
-    const auto bs = this->get_decision_device();
-
-    auto write = [this, client, bs, task_size, channelWidth, txPowerStart, content = msg.to_packet()]() {
+    
+    auto self = shared_from_base<this_type>();
+    auto write = [self, client, channelWidth, txPowerStart, t = std::move(t)]() mutable {
         auto pos = client->get_position();
-        double u2b_distance = this->calculate_distance(pos.x, pos.y, pos.z);
+        double u2b_distance = self->calculate_distance(pos.x, pos.y, pos.z);
+        double task_size = std::stod(t.get_header("size"));
         // double transmission_delay = /*task_size / 30 + */u2b_distance / 200000 + 0.02;
-        log::warning("client position: [{},{},{}], U2B Distance: {}m", 
-            pos.x, pos.y, pos.z, u2b_distance);
         double channel_gain = 4.11 * std::pow(3 * std::pow(10, 8) / (4 * std::numbers::pi * 915 * std::pow(10, 6) * u2b_distance), 2.8) * rand_rayleigh();
-        double transmission_rate = 2 * std::pow(10, 6) * std::log(1 + (0.1 * channel_gain) / std::pow(10, -10));
-        okec::print("channel gain: {}, transmission rate: {}\n", channel_gain, transmission_rate);
+        double u2b_bandwidth = 5.0;
+        double transmission_rate = u2b_bandwidth /** std::pow(10, 6)*/ * std::log(1 + (0.7 * channel_gain) / std::pow(10, -10)); // 注释掉 *10^6，可以直接得到 Mb/s 的单位，否则得到的是 bits/s，后面还是得转换单位
+        double transmission_delay = task_size / transmission_rate + u2b_distance / 200000000;
+        log::warning("channel gain: {}, transmission rate: {}Mbs", channel_gain, transmission_rate);
+        log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / 200000000);
+        log::warning("client position: [{},{},{}], U2B Distance: {}m, U2B Total Transmission Delay: {}s", 
+            pos.x, pos.y, pos.z, u2b_distance, transmission_delay);
 
-
-        client->write(content, bs->get_address(), bs->get_port());
+        t.set_header("transmission_delay", std::to_string(transmission_delay));
+        
+        message msg;
+        msg.type(message_decision);
+        msg.content(t);
+        const auto bs = self->get_decision_device();
+        
+        client->write(msg.to_packet(), bs->get_address(), bs->get_port());
     };
     ns3::Simulator::Schedule(ns3::Seconds(launch_delay), write);
     launch_delay += 0.01;
@@ -203,6 +232,25 @@ auto cloud_edge_end_default_decision_engine::handle_next() -> void
         // 决策失败，无法处理任务
         if (target.is_null()) {
             log::error("No device can handle the task({})!", it->get_header("task_id"));
+            message response {
+                { "msgtype", "response" },
+                { "task_id", it->get_header("task_id") },
+                { "group", it->get_header("group") },
+                { "device_type", "null" },
+                { "device_address", "N/A" },
+                { "processing_time", "N/A" },
+                { "transmission_delay", "N/A" },
+                { "wait_time", "N/A" }
+            };
+
+            // it->set_header("status", "1"); // 更改任务分发状态
+
+            auto from_ip = it->get_header("from_ip");
+            auto from_port = it->get_header("from_port");
+            m_decision_device->write(response.to_packet(), ns3::Ipv4Address(from_ip.c_str()), std::stoi(from_port));
+
+            // 处理过的任务从队列中清除
+            task_sequence.erase(it);
             return;
         }
 
@@ -220,9 +268,13 @@ auto cloud_edge_end_default_decision_engine::handle_next() -> void
         if (target["type"] == "cs") {
             log::warning("Offloading to cloud");
             // 记录传输延迟
-            it->set_header("transmission_delay", TO_STR(target["transmission_delay"]));
+            double u2b_transmission_delay = std::stod(it->get_header("transmission_delay"));
+            okec::print("{}\n", target.dump(4));
+            double b2c_transmission_delay = target["transmission_delay"].template get<double>();
+            it->set_header("transmission_delay", std::to_string(u2b_transmission_delay + b2c_transmission_delay));
         }
 
+        it->set_header("wait_time", TO_STR(target["wait_time"]));
         it->set_header("status", "1"); // 更改任务分发状态
         m_decision_device->write(msg.to_packet(), ns3::Ipv4Address(TO_STR(target["ip"]).c_str()), TO_INT(target["port"]));
     }
@@ -238,6 +290,7 @@ auto cloud_edge_end_default_decision_engine::on_bs_decision_message(
     // task_element 为单位
     auto item = okec::task_element::from_msg_packet(packet);
     item.set_header("status", "0"); // 增加处理状态信息 0: 未处理 1: 已处理
+    item.set_header("arrival_time", fmt::format("{:.8f}", now::seconds())); // 增加任务到达时间
     bs->task_sequence(std::move(item));
 
     this->handle_next();
@@ -254,13 +307,15 @@ auto cloud_edge_end_default_decision_engine::on_bs_response_message(
     if (auto it = std::ranges::find_if(task_sequence, [&msg](auto const& item) {
         return item.get_header("task_id") == msg.get_value("task_id");
     }); it != std::end(task_sequence)) {
-        msg.attribute("group", (*it).get_header("group"));
+        msg.attribute("group", it->get_header("group"));
+        msg.attribute("transmission_delay", it->get_header("transmission_delay"));
+        msg.attribute("wait_time", it->get_header("wait_time"));
 
-        // 记录云服务器的传输时延
-        auto transmission_delay = it->get_header("transmission_delay");
-        if (!transmission_delay.empty()) {
-            msg.attribute("transmission_delay", transmission_delay);
-        }
+        // 记录云服务器的传输时延(都有这个字段，不用单独记录了)
+        // auto transmission_delay = it->get_header("transmission_delay");
+        // if (!transmission_delay.empty()) {
+        //     msg.attribute("transmission_delay", transmission_delay);
+        // }
 
         auto from_ip = (*it).get_header("from_ip");
         auto from_port = (*it).get_header("from_port");
@@ -325,48 +380,10 @@ auto cloud_edge_end_default_decision_engine::on_es_handling_message(
             { "task_id", task_id },
             { "device_type", "es" },
             { "device_address", device_address },
-            { "processing_time", fmt::format("{:.9f}", processing_time) }
+            { "processing_time", std::to_string(processing_time) }
         };
         es->write(response.to_packet(), ipv4_remote, es->get_port());
     });
-}
-
-auto cloud_edge_end_default_decision_engine::on_clients_reponse_message(
-    client_device *client,
-    ns3::Ptr<ns3::Packet> packet,
-    const ns3::Address &remote_address) -> void
-{
-    message msg(packet);
-    log::success("{}", msg.dump());
-
-    auto it = client->response_cache().find_if([&msg](const response::value_type& item) {
-        return item["group"] == msg.get_value("group") && item["task_id"] == msg.get_value("task_id");
-    });
-    if (it != client->response_cache().end()) {
-        (*it)["device_type"] = msg.get_value("device_type");
-        (*it)["device_address"] = msg.get_value("device_address");
-        (*it)["time_consuming"] = msg.get_value("processing_time");
-        (*it)["finished"] = msg.get_value("device_type") != "null" ? "Y" : "N";
-
-        log::success("client({:ip}) has received a response for task(id={}).", client->get_address(), msg.get_value("task_id"));
-    }
-
-    // 检查是否存在当前任务的信息
-    auto exist = client->response_cache().find_if([&msg](const auto& item) {
-        return item["group"] == msg.get_value("group");
-    });
-    if (exist == client->response_cache().end()) {
-        log::error("Fatal error! Invalid response."); // 说明发出去的数据被修改，或是 m_response 被无意间删除了信息
-        return;
-    }
-
-    // 全部完成
-    auto unfinished = client->response_cache().find_if([&msg](const auto& item) {
-        return item["group"] == msg.get_value("group") && item["finished"] == "0";
-    });
-    if (unfinished == client->response_cache().end()) {
-        client->when_done(client->response_cache().dump_with({ "group", msg.get_value("group") }));
-    }
 }
 
 auto cloud_edge_end_default_decision_engine::on_cloud_handling_message(
@@ -398,10 +415,50 @@ auto cloud_edge_end_default_decision_engine::on_cloud_handling_message(
             { "task_id", task_id },
             { "device_type", "cs" },
             { "device_address", device_address },
-            { "processing_time", fmt::format("{:.9f}", processing_time) }
+            { "processing_time", std::to_string(processing_time) }
         };
         cs->write(response.to_packet(), ipv4_remote, cs->get_port());
     });
+}
+
+auto cloud_edge_end_default_decision_engine::on_clients_reponse_message(
+    client_device *client,
+    ns3::Ptr<ns3::Packet> packet,
+    const ns3::Address &remote_address) -> void
+{
+    message msg(packet);
+    log::success("{}", msg.dump());
+
+    auto it = client->response_cache().find_if([&msg](const response::value_type& item) {
+        return item["group"] == msg.get_value("group") && item["task_id"] == msg.get_value("task_id");
+    });
+    if (it != client->response_cache().end()) {
+        (*it)["device_type"] = msg.get_value("device_type");
+        (*it)["device_address"] = msg.get_value("device_address");
+        (*it)["processing_delay"] = msg.get_value("processing_time");
+        (*it)["transmission_delay"] = msg.get_value("transmission_delay");
+        (*it)["wait_time"] = msg.get_value("wait_time");
+        (*it)["finished"] = msg.get_value("device_type") != "null" ? "Y" : "N";
+
+        log::success("client({:ip}) has received a response for task(id={}).", client->get_address(), msg.get_value("task_id"));
+    }
+
+    // 检查是否存在当前任务的信息
+    auto exist = client->response_cache().find_if([&msg](const auto& item) {
+        return item["group"] == msg.get_value("group");
+    });
+    if (exist == client->response_cache().end()) {
+        log::error("Fatal error! Invalid response."); // 说明发出去的数据被修改，或是 m_response 被无意间删除了信息
+        return;
+    }
+
+    // 全部完成
+    auto unfinished = client->response_cache().find_if([&msg](const auto& item) {
+        return item["group"] == msg.get_value("group") && item["finished"] == "0";
+    });
+    if (unfinished == client->response_cache().end()) {
+        client->when_done(client->response_cache().dump_with({ "group", msg.get_value("group") }));
+    }
 }
 
 } // namespace okec
