@@ -104,15 +104,15 @@ auto cloud_edge_end_default_decision_engine::make_decision(
         double processing_time = cpu_demand / cloud_cpu_supply;
 
         double b2c_distance = this->calculate_distance(cs_x, cs_y, cs_z);
-        double b2c_propagation_delay_and_network_latency = b2c_distance / 200000000;
+        double b2c_propagation_delay = b2c_distance / 200000000;
         // 到服务器考虑往返两次的传播时延和网络时延，传输时延由于回来时响应结果非常小，可以忽略不计
-        double b2c_bandwidth = 20.0;
-        double b2c_transmission_delay = task_size / b2c_bandwidth + b2c_propagation_delay_and_network_latency * 2;
+        double b2c_bandwidth = 30.0;
+        double b2c_transmission_delay = task_size / b2c_bandwidth + b2c_propagation_delay * 2;
         double total_delay = processing_time + u2b_transmission_delay + b2c_transmission_delay + wait_time;
         
         // 能够满足时延要求
         if (total_delay < tolorable_time) {
-            log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / 30, b2c_distance / 200000000);
+            log::warning("Transmission time: {}s, Propagation delay: {}s, wait: {}s", task_size / b2c_bandwidth, b2c_propagation_delay * 2, wait_time);
             log::warning("B2C distance is {}m. transmission delay is {}s.", b2c_distance, b2c_transmission_delay);
             
             return {

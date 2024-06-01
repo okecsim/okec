@@ -10,7 +10,7 @@ void generate_task(okec::task& t, int number, std::string const& group)
         t.emplace_back({
             { "task_id", okec::task::unique_id() },
             { "group", group },
-            { "size",  okec::rand_range(15, 20).to_string() },
+            { "size",  okec::rand_range(25, 30).to_string() },
             { "cpu", okec::rand_range(0.5, 1.5).to_string() },
             { "deadline", okec::rand_range(1.5, 2.0).to_string() },
         });
