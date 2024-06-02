@@ -5,16 +5,18 @@ namespace olog = okec::log;
 
 void generate_task(okec::task& t, int number, std::string const& group)
 {
-    for (auto i = number; i-- > 0;)
-    {
-        t.emplace_back({
-            { "task_id", okec::task::unique_id() },
-            { "group", group },
-            { "size",  okec::rand_range(25, 30).to_string() },
-            { "cpu", okec::rand_range(0.5, 1.5).to_string() },
-            { "deadline", okec::rand_range(1.5, 2.0).to_string() },
-        });
-    }
+    // for (auto i = number; i-- > 0;)
+    // {
+    //     t.emplace_back({
+    //         { "task_id", okec::task::unique_id() },
+    //         { "group", group },
+    //         { "size",  okec::rand_range(20, 25).to_string() },
+    //         { "cpu", okec::rand_range(0.5, 1.5).to_string() },
+    //         { "deadline", okec::rand_range(2.0, 2.5).to_string() },
+    //     });
+    // }
+    // t.save_to_file("task-" + std::to_string(number) + ".json");
+    t.load_from_file("data/task-" + std::to_string(number) + ".json");
 }
 
 okec::awaitable offloading(auto user, okec::task t) {
@@ -26,6 +28,13 @@ okec::awaitable offloading(auto user, okec::task t) {
 
     // okec::print("{}\n", resp.dump(2));
     okec::print("{:r}", resp);
+    double finished = 0;
+    for (const auto& item : resp.data()) {
+        if (item["finished"] == "Y") {
+            finished++;
+        }
+    }
+    okec::print("Task completion rate: {:2.0f}%\n", finished / resp.size() * 100);
 }
 
 int main(int argc, char **argv)
@@ -69,9 +78,12 @@ int main(int argc, char **argv)
 
     // Initialize the resources for each edge server.
     okec::resource_container resources(edge_servers.size());
-    resources.initialize([](auto res) {
-        res->attribute("cpu", okec::rand_range(2.1, 2.4).to_string());
-    });
+    // resources.initialize([](auto res) {
+    //     res->attribute("cpu", okec::rand_range(2.4, 2.8).to_string());
+    // });
+    // resources.save_to_file("resource-" + std::to_string(resources.size()) + ".json");
+    resources.load_from_file("data/resource-" + std::to_string(resources.size()) + ".json");
+    okec::print("resources:\n{:rs}\n", resources);
 
     // Install each resource on each edge server.
     edge_servers.install_resources(resources);
@@ -93,6 +105,7 @@ int main(int argc, char **argv)
 
     okec::task t;
     generate_task(t, task_num, "dummy");
+    okec::print("task:\n{:t}\n", t);
 
     auto user1 = user_devices.get_device(0);
     co_spawn(sim, offloading(user1, t));

@@ -104,9 +104,10 @@ auto cloud_edge_end_default_decision_engine::make_decision(
         double processing_time = cpu_demand / cloud_cpu_supply;
 
         double b2c_distance = this->calculate_distance(cs_x, cs_y, cs_z);
-        double b2c_propagation_delay = b2c_distance / 200000000;
+        double mps_speed = 3000000.0; // 3000km/s
+        double b2c_propagation_delay = b2c_distance / mps_speed;
         // 到服务器考虑往返两次的传播时延和网络时延，传输时延由于回来时响应结果非常小，可以忽略不计
-        double b2c_bandwidth = 30.0;
+        double b2c_bandwidth = 30.0; // 30Mb/s
         double b2c_transmission_delay = task_size / b2c_bandwidth + b2c_propagation_delay * 2;
         double total_delay = processing_time + u2b_transmission_delay + b2c_transmission_delay + wait_time;
         
@@ -184,9 +185,10 @@ auto cloud_edge_end_default_decision_engine::send(
         double channel_gain = 4.11 * std::pow(3 * std::pow(10, 8) / (4 * std::numbers::pi * 915 * std::pow(10, 6) * u2b_distance), 2.8) * rand_rayleigh();
         double u2b_bandwidth = 5.0;
         double transmission_rate = u2b_bandwidth /** std::pow(10, 6)*/ * std::log(1 + (0.7 * channel_gain) / std::pow(10, -10)); // 注释掉 *10^6，可以直接得到 Mb/s 的单位，否则得到的是 bits/s，后面还是得转换单位
-        double transmission_delay = task_size / transmission_rate + u2b_distance / 200000000;
+        double mps_speed = 1000.0; // 1000m/s
+        double transmission_delay = task_size / transmission_rate + u2b_distance / mps_speed;
         log::warning("channel gain: {}, transmission rate: {}Mbs", channel_gain, transmission_rate);
-        log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / 200000000);
+        log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / mps_speed);
         log::warning("client position: [{},{},{}], U2B Distance: {}m, U2B Total Transmission Delay: {}s", 
             pos.x, pos.y, pos.z, u2b_distance, transmission_delay);
 
@@ -224,6 +226,9 @@ auto cloud_edge_end_default_decision_engine::handle_next() -> void
 {
     auto& task_sequence = m_decision_device->task_sequence();
     log::info("handle_next.... current task sequence size: {}", task_sequence.size());
+    // for (auto& element : task_sequence) {
+    //     log::info("{}", element.dump());
+    // }
 
     if (auto it = std::ranges::find_if(task_sequence, [](auto const& item) {
         return item.get_header("status") == "0";
@@ -251,6 +256,15 @@ auto cloud_edge_end_default_decision_engine::handle_next() -> void
 
             // 处理过的任务从队列中清除
             task_sequence.erase(it);
+
+            // 如果任务列表不为空
+            // if (!task_sequence.empty()) {
+            //     // 隔上0.5s再尝试处理任务列表
+            //     auto self = shared_from_base<this_type>();
+            //     ns3::Simulator::Schedule(ns3::Seconds(0.5), [self]() {
+            //         self->handle_next();
+            //     });
+            // }
             return;
         }
 
