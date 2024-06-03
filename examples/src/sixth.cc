@@ -20,11 +20,11 @@ void generate_task(okec::task& t, int number, std::string const& group)
 }
 
 okec::awaitable offloading(auto user, okec::task t) {
-    olog::debug("offloading begin");
+    // olog::debug("offloading begin");
 
     co_await user->async_send(std::move(t));
     auto resp = co_await user->async_read();
-    olog::success("received response.");
+    olog::success("received response.\n");
 
     // okec::print("{}\n", resp.dump(2));
     okec::print("{:r}", resp);
@@ -34,7 +34,7 @@ okec::awaitable offloading(auto user, okec::task t) {
             finished++;
         }
     }
-    okec::print("Task completion rate: {:2.0f}%\n", finished / resp.size() * 100);
+    okec::print("Task completion rate: {:2.0f}%\n\n", finished / resp.size() * 100);
 }
 
 int main(int argc, char **argv)

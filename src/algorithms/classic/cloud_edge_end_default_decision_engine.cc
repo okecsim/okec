@@ -161,11 +161,11 @@ auto cloud_edge_end_default_decision_engine::send(
     ns3::Ptr<ns3::WifiPhy> phyClient = wifiDevice->GetPhy();
 
     // 获取 STA 的传输速率
-    uint16_t channelWidth = phyClient->GetChannelWidth();
-    double txPowerStart = phyClient->GetTxPowerStart();
-    double txPowerEnd = phyClient->GetTxPowerEnd();
-    okec::print("Channel width: {}MHz, txPowerStart: {}dBm, txPowerEnd: {}dBm, GetPowerDbm: {}dBm\n", 
-        channelWidth, txPowerStart, txPowerEnd, phyClient->GetPowerDbm(txPowerStart));
+    [[maybe_unused]] uint16_t channelWidth = phyClient->GetChannelWidth();
+    [[maybe_unused]] double txPowerStart = phyClient->GetTxPowerStart();
+    [[maybe_unused]] double txPowerEnd = phyClient->GetTxPowerEnd();
+    // okec::print("Channel width: {}MHz, txPowerStart: {}dBm, txPowerEnd: {}dBm, GetPowerDbm: {}dBm\n", 
+    //     channelWidth, txPowerStart, txPowerEnd, phyClient->GetPowerDbm(txPowerStart));
 
     // okec::print("rayleigh number1: {}\n", rand_rayleigh());
     // okec::print("rayleigh number2: {}\n", rand_rayleigh());
@@ -186,11 +186,13 @@ auto cloud_edge_end_default_decision_engine::send(
         double u2b_bandwidth = 5.0;
         double transmission_rate = u2b_bandwidth /** std::pow(10, 6)*/ * std::log(1 + (0.7 * channel_gain) / std::pow(10, -10)); // 注释掉 *10^6，可以直接得到 Mb/s 的单位，否则得到的是 bits/s，后面还是得转换单位
         double mps_speed = 1000.0; // 1000m/s
-        double transmission_delay = task_size / transmission_rate + u2b_distance / mps_speed;
-        log::warning("channel gain: {}, transmission rate: {}Mbs", channel_gain, transmission_rate);
-        log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / mps_speed);
-        log::warning("client position: [{},{},{}], U2B Distance: {}m, U2B Total Transmission Delay: {}s", 
-            pos.x, pos.y, pos.z, u2b_distance, transmission_delay);
+        double transmission_delay = task_size / transmission_rate + u2b_distance / mps_speed * 2;
+        // log::warning("channel gain: {}, transmission rate: {}Mbs", channel_gain, transmission_rate);
+        // log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / mps_speed);
+        // log::warning("EndDevice({:ip}) position: ({},{},{}), U2B Distance: {}m, U2B Total Transmission Delay: {}s", 
+        //     client->get_address(), pos.x, pos.y, pos.z, u2b_distance, transmission_delay);
+        log::warning("EndDevice({:ip}) position: ({:.8f},{:.8f}), U2B Distance: {:.8f}m", 
+            client->get_address(), pos.x, pos.y, u2b_distance);
 
         t.set_header("transmission_delay", std::to_string(transmission_delay));
         
@@ -199,7 +201,7 @@ auto cloud_edge_end_default_decision_engine::send(
         msg.content(t);
         const auto bs = self->get_decision_device();
         
-        client->write(msg.to_packet(), bs->get_address(), bs->get_port());
+        // client->write(msg.to_packet(), bs->get_address(), bs->get_port());
     };
     ns3::Simulator::Schedule(ns3::Seconds(launch_delay), write);
     launch_delay += 0.01;
