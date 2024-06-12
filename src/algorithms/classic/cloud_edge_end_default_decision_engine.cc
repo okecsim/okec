@@ -201,7 +201,7 @@ auto cloud_edge_end_default_decision_engine::send(
         msg.content(t);
         const auto bs = self->get_decision_device();
         
-        // client->write(msg.to_packet(), bs->get_address(), bs->get_port());
+        client->write(msg.to_packet(), bs->get_address(), bs->get_port());
     };
     ns3::Simulator::Schedule(ns3::Seconds(launch_delay), write);
     launch_delay += 0.01;

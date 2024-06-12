@@ -218,7 +218,7 @@ auto Env::trace_resource(int flag) -> void
 {
     static std::ofstream file;
     if (!file.is_open()) {
-        file.open("scene2-rf-resource_tracer.csv", std::ios::out/* | std::ios::app*/);
+        file.open("./data/rf-discrete-resource_tracer.csv", std::ios::out/* | std::ios::app*/);
         if (!file.is_open()) {
             return;
         }

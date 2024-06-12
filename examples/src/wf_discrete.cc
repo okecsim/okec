@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     edge_devices1.install_resources(edge_resources1);   // 一键为所有边缘设备安装资源
     // edge_devices2.install_resources(edge_resources2);   // 一键为所有边缘设备安装资源
 
-    auto decision_engine = std::make_shared<okec::DQN_decision_engine>(&user_devices, &base_stations);
+    auto decision_engine = std::make_shared<okec::worst_fit_decision_engine>(&user_devices, &base_stations);
     decision_engine->initialize();
 
     okec::task t;
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
     auto device_1 = user_devices.get_device(0);
     // device_1->send(t);
-    decision_engine->train(t, 1);
+    decision_engine->train(t);
     // decision_engine->train(t, device_1, base_stations);
     // device_1->send(t);
     // device_1->when_done([](okec::response res) {

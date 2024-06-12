@@ -39,7 +39,7 @@ okec::awaitable offloading(auto user, okec::task t) {
 
 int main(int argc, char **argv)
 {
-    std::size_t edge_num = 5;
+    std::size_t edge_num = 3;
     std::size_t task_num = 10;
 
     ns3::CommandLine cmd;
