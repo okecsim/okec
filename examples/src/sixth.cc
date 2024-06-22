@@ -52,6 +52,7 @@ int main(int argc, char **argv)
     olog::set_level(olog::level::all);
 
     okec::simulator sim;
+    // sim.enable_visualizer();
 
     // Create 1 base station
     okec::base_station_container base_stations(sim, 1);

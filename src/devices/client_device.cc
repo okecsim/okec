@@ -15,9 +15,6 @@
 #include <okec/common/awaitable.h>
 #include <okec/common/response.h>
 #include <okec/common/simulator.h>
-#include <boost/multiprecision/cpp_int.hpp>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/number.hpp>
 #include <ns3/mobility-module.h>
 
 

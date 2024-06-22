@@ -34,6 +34,7 @@ int main(int argc, char **argv)
     okec::log::set_level(okec::log::level::info);
 
     okec::simulator sim;
+    // sim.enable_visualizer();
 
     // Create 1 base station
     okec::base_station_container bs(sim, 1);
