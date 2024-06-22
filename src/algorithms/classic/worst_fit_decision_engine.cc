@@ -67,7 +67,7 @@ worst_fit_decision_engine::worst_fit_decision_engine(
         clients.set_request_handler(message_response, std::bind_front(&this_type::on_clients_reponse_message, this));
     }
 
-    fmt::print("{}\n", this->cache().dump(4));
+    okec::print("{}\n", this->cache().dump(4));
 }
 
 auto worst_fit_decision_engine::make_decision(const task_element& header) -> result_t
@@ -126,7 +126,7 @@ auto worst_fit_decision_engine::send(task_element t, std::shared_ptr<client_devi
     // fmt::print("Received tasks:\n{}\n", t.j_data().dump(4));
 
     // 不管本地，全部往边缘服务器卸载
-    t.set_header("from_ip", fmt::format("{:ip}", client->get_address()));
+    t.set_header("from_ip", okec::format("{:ip}", client->get_address()));
     t.set_header("from_port", std::to_string(client->get_port()));
     message msg;
     msg.type(message_decision);
@@ -391,7 +391,7 @@ auto worst_fit_decision_engine::on_es_handling_message(
         auto device_resource = es->get_resource();
         auto cur_cpu = std::stod(device_resource->get_value("cpu"));
         device_resource->reset_value("cpu", std::to_string(cur_cpu + cpu_demand));
-        auto device_address = fmt::format("{:ip}", es->get_address());
+        auto device_address = okec::format("{:ip}", es->get_address());
 
         log::info("edge server({}) restores resources: {} --> {:.2f}(demand: {})", device_address, cur_cpu, cur_cpu + cpu_demand, cpu_demand);
 
@@ -402,7 +402,7 @@ auto worst_fit_decision_engine::on_es_handling_message(
             { "task_id", task_id },
             { "device_type", "es" },
             { "device_address", device_address },
-            { "processing_time", fmt::format("{:.9f}", processing_time) }
+            { "processing_time", okec::format("{:.9f}", processing_time) }
         };
         es->write(response.to_packet(), ipv4_remote, es->get_port());
     });

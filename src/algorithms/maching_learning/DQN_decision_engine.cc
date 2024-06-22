@@ -201,8 +201,8 @@ auto Env::when_done(done_callback_t callback) -> void
 
 auto Env::print_cache() -> void
 {
-    fmt::print("print_cache:\n{}\n", cache_.dump(4));
-    fmt::print("tasks:\n{}\n", t_.dump(4));
+    okec::print("print_cache:\n{}\n", cache_.dump(4));
+    okec::print("tasks:\n{}\n", t_.dump(4));
 }
 
 auto Env::learn(std::size_t step) -> void
@@ -236,7 +236,7 @@ auto Env::trace_resource(int flag) -> void
     //     file << "\n";
     // }
     // file << "\n";
-    file << fmt::format("{:.2f} [episode={}]", ns3::Simulator::Now().GetSeconds(), episode);
+    file << okec::format("{:.2f} [episode={}]", ns3::Simulator::Now().GetSeconds(), episode);
     auto& edge_cache = this->cache_.view();
     for (const auto& edge : edge_cache) {
         file << "," << TO_DOUBLE(edge["cpu"]);
@@ -293,7 +293,7 @@ DQN_decision_engine::DQN_decision_engine(
         clients.set_request_handler(message_response, std::bind_front(&this_type::on_clients_reponse_message, this));
     }
 
-    fmt::print("{}\n", this->cache().dump(4));
+    okec::print("{}\n", this->cache().dump(4));
 }
 
 auto DQN_decision_engine::make_decision(const task_element& header) -> result_t
@@ -323,7 +323,7 @@ auto DQN_decision_engine::send(task_element t, std::shared_ptr<client_device> cl
 
     // 将所有任务都发送到决策设备，从而得到所有任务的信息
     // 追加任务发送地址信息
-    t.set_header("from_ip", fmt::format("{:ip}", client->get_address()));
+    t.set_header("from_ip", okec::format("{:ip}", client->get_address()));
     t.set_header("from_port", std::to_string(client->get_port()));
     message msg;
     msg.type(message_decision);

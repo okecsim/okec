@@ -151,10 +151,10 @@ auto base_station::task_sequence_status() -> std::vector<char>&
 
 auto base_station::print_task_info() -> void
 {
-    fmt::print("Task sequence size: {}\n", m_task_sequence.size());
-    for (const auto& item : m_task_sequence) {
-        fmt::print("Item: {}\n", item.dump());
-    }
+    // okec::print("Task sequence size: {}\n", m_task_sequence.size());
+    // for (const auto& item : m_task_sequence) {
+    //     okec::print("Item: {}\n", item.dump());
+    // }
 }
 
 auto base_station::handle_next() -> void

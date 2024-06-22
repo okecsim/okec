@@ -81,7 +81,7 @@ auto client_device::async_send(task t) -> std::suspend_never
 
 auto client_device::async_read() -> response_awaiter
 {
-    return response_awaiter{sim_, fmt::format("{:ip}", this->get_address())};
+    return response_awaiter{sim_, okec::format("{:ip}", this->get_address())};
 }
 
 auto client_device::async_read(done_callback_t fn) -> void
@@ -91,7 +91,7 @@ auto client_device::async_read(done_callback_t fn) -> void
 
 auto client_device::when_done(response_type resp) -> void
 {
-    auto ip = fmt::format("{:ip}", this->get_address());
+    auto ip = okec::format("{:ip}", this->get_address());
     if (sim_.is_valid(ip)) {
         sim_.complete(ip, std::move(resp));
     }

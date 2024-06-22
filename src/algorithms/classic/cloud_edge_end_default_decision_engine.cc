@@ -172,7 +172,7 @@ auto cloud_edge_end_default_decision_engine::send(
     
 
     // 不管本地，全部往边缘服务器卸载
-    t.set_header("from_ip", fmt::format("{:ip}", client->get_address()));
+    t.set_header("from_ip", okec::format("{:ip}", client->get_address()));
     t.set_header("from_port", std::to_string(client->get_port()));
 
     
@@ -385,7 +385,7 @@ auto cloud_edge_end_default_decision_engine::on_es_handling_message(
         auto device_resource = es->get_resource();
         auto cur_cpu = std::stod(device_resource->get_value("cpu"));
         device_resource->reset_value("cpu", std::to_string(cur_cpu + cpu_demand));
-        auto device_address = fmt::format("{:ip}", es->get_address());
+        auto device_address = okec::format("{:ip}", es->get_address());
 
         log::info("edge server({}) restores resources: {} --> {:.2f}(demand: {})", device_address, cur_cpu, cur_cpu + cpu_demand, cpu_demand);
 
@@ -424,7 +424,7 @@ auto cloud_edge_end_default_decision_engine::on_cloud_handling_message(
     auto self = shared_from_base<this_type>();
     ns3::Simulator::Schedule(ns3::Seconds(processing_time), [self, cs, ipv4_remote, task_id, processing_time, cpu_demand]() {
         // 处理完成，释放内存
-        auto device_address = fmt::format("{:ip}", cs->get_address());
+        auto device_address = okec::format("{:ip}", cs->get_address());
 
         message response {
             { "msgtype", "response" },

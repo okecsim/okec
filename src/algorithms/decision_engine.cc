@@ -99,7 +99,7 @@ auto decision_engine::resource_changed(edge_device* es,
 {
     message notify_msg;
     notify_msg.type(message_resource_changed);
-    notify_msg.attribute("ip", fmt::format("{:ip}", es->get_address()));
+    notify_msg.attribute("ip", okec::format("{:ip}", es->get_address()));
     notify_msg.attribute("port", std::to_string(es->get_port()));
     notify_msg.content(*es->get_resource());
     es->write(notify_msg.to_packet(), remote_ip, remote_port);
@@ -147,7 +147,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
         if (cs_res && !cs_res->empty()) {
             m_device_cache.emplace_back({
                 { "device_type", "cs" },
-                { "ip", fmt::format("{:ip}", cs->get_address()) },
+                { "ip", okec::format("{:ip}", cs->get_address()) },
                 { "port", std::to_string(cs->get_port()) },
                 { "pos_x", std::to_string(cs_pos.x) },
                 { "pos_y", std::to_string(cs_pos.y) },
@@ -184,7 +184,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
             if (p_resource && !p_resource->empty()) {
                 // 设备已经绑定资源，直接记录
                 auto es_pos = device->get_position();
-                auto ip = fmt::format("{:ip}", device->get_address());
+                auto ip = okec::format("{:ip}", device->get_address());
                 auto port = std::to_string(device->get_port());
 
                 m_device_cache.emplace_back({
@@ -310,7 +310,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container) ->
             if (p_resource && !p_resource->empty()) {
                 // 设备已经绑定资源，直接记录
                 auto es_pos = device->get_position();
-                auto ip = fmt::format("{:ip}", device->get_address());
+                auto ip = okec::format("{:ip}", device->get_address());
                 auto port = std::to_string(device->get_port());
 
                 m_device_cache.emplace_back({

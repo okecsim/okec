@@ -106,11 +106,11 @@ auto edge_device::on_get_resource_information(ns3::Ptr<ns3::Packet> packet, cons
     message msg {
         { "msgtype", message_resource_information },
         { "device_type", "es" },
-        { "ip", fmt::format("{:ip}", this->get_address()) },
-        { "port", fmt::format("{}", this->get_port()) },
-        { "pos_x", fmt::format("{}", get_position().x) },
-        { "pos_y", fmt::format("{}", get_position().y) },
-        { "pos_z", fmt::format("{}", get_position().z) }
+        { "ip", okec::format("{:ip}", this->get_address()) },
+        { "port", okec::format("{}", this->get_port()) },
+        { "pos_x", okec::format("{}", get_position().x) },
+        { "pos_y", okec::format("{}", get_position().y) },
+        { "pos_z", okec::format("{}", get_position().z) }
     };
     msg.content(*device_resource);
     this->write(msg.to_packet(), ns3::InetSocketAddress::ConvertFrom(remote_address).GetIpv4(), 8860);

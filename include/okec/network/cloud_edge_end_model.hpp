@@ -170,7 +170,7 @@ struct cloud_edge_end_model {
 
         int APs = base_stations.size();
         if (APs != static_cast<int>(clients.size())) {
-            fmt::print(fg(fmt::color::red), "Fatal error! (network_initializer) Client size does not match the BS size!\n");
+            log::error("Fatal error! (network_initializer) Client size does not match the BS size!");
             return;
         }
 
