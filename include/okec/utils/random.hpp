@@ -4,7 +4,6 @@
 #include <concepts>
 #include <random>
 #include <type_traits>
-#include <fmt/core.h>
 #include <torch/torch.h>
 
 namespace okec
@@ -40,10 +39,10 @@ struct rand_range {
 
     auto to_string(int precision = 2) -> std::string {
         if constexpr (std::is_floating_point_v<T>) {
-            return fmt::format("{:.{}f}", val, precision);
+            return okec::format("{:.{}f}", val, precision);
         }
         
-        return fmt::format("{}", val);
+        return okec::format("{}", val);
     }
 
 private:
@@ -79,10 +78,10 @@ public:
 
     auto to_string(int precision = 2) -> std::string {
         if constexpr (std::is_floating_point_v<value_type>) {
-            return fmt::format("{:.{}f}", val, precision);
+            return okec::format("{:.{}f}", val, precision);
         }
         
-        return fmt::format("{}", val);
+        return okec::format("{}", val);
     }
 
 private:

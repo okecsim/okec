@@ -23,7 +23,6 @@ void my_monitor(std::string_view address, std::string_view attr, std::string_vie
         }
     }
 
-    // file << fmt::format("At time {:.2f}s,{},{},{},{}\n", Simulator::Now().GetSeconds(), address, attr, old_val, new_val);
     file << okec::format("At time {:.2f}s,{},{},{}\n", ns3::Simulator::Now().GetSeconds(), address, old_val, new_val);
 }
 
@@ -53,7 +52,7 @@ int main(int argc, char **argv)
     // Initialize the resources for each edge server.
     okec::resource_container edge_resources(edge_servers.size());
     edge_resources.initialize([](auto res) {
-        res->attribute("cpu", fmt::format("{:.2f}", torch::rand({1}).uniform_(2.1, 2.2).item<double>()));
+        res->attribute("cpu", okec::format("{:.2f}", torch::rand({1}).uniform_(2.1, 2.2).item<double>()));
     });
     // edge_resources.save_to_file("resource-" + std::to_string(edge_resources.size()) + ".json");
     // edge_resources.load_from_file("data/resource-" + std::to_string(edge_resources.size()) + ".json");
@@ -86,7 +85,7 @@ int main(int argc, char **argv)
     // Client request someone to handle the task.
     auto user = user_devices.get_device(0);
     user->async_read([&time_total_points, &time_average_points, &x_points, task_size = tasks.size()](okec::response response) {
-        fmt::print("{0:=^{1}}\n", "Response Info", 180);
+        okec::print("{0:=^{1}}\n", "Response Info", 180);
         double finished = 0;
         int index = 1;
         std::vector<double> time_points;

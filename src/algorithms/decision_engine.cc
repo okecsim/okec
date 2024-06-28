@@ -206,7 +206,6 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
                     }
                 }
 
-                // print_info(fmt::format("The decision engine got the resource information of edge device({}).", (*item)["ip"]));
                 log::debug("The decision engine got the resource information of edge device({}).", (*item)["ip"].template get<std::string>());
             } else {
                 // 说明设备此时还未绑定资源，通过网络询问一下
@@ -220,7 +219,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
         }
     });
 
-    // fmt::print("Info: {}\n", m_device_cache.dump());
+    // okec::print("Info: {}\n", m_device_cache.dump());
 
     // 捕获通过网络问询的信息，更新设备信息（能收到就一定存在资源信息）
     m_decision_device->set_request_handler(message_resource_information, 
@@ -256,7 +255,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
     // 资源更新(外部所指定的BS不一定是第0个，所以要为所有BS设置消息以确保捕获)
     bs_container->set_request_handler(message_resource_changed, 
         [this](okec::base_station* bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) {
-            // fmt::print(fg(fmt::color::white), "At time {:.2f}s The decision engine got notified about device resource changes: {}\n", Simulator::Now().GetSeconds() , okec::packet_helper::to_string(packet));
+            // okec::print("At time {:.2f}s The decision engine got notified about device resource changes: {}\n", Simulator::Now().GetSeconds() , okec::packet_helper::to_string(packet));
             auto msg = message::from_packet(packet);
             auto es_resource = resource::from_msg_packet(packet);
             auto ip = msg.get_value("ip");
@@ -281,12 +280,11 @@ auto decision_engine::initialize_device(base_station_container* bs_container, cl
     bs_container->set_request_handler(message_conflict,
         [this](okec::base_station* bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) {
             auto task_item = task_element::from_msg_packet(packet);
-            // fmt::print("资源冲突\n{}\n", task_item.dump());
             auto& task_sequence = bs->task_sequence();
             if (auto it = std::ranges::find_if(task_sequence, [&task_item](auto const& item) {
                 return item.get_header("task_id") == task_item.get_header("task_id");
             }); it != std::end(task_sequence)) {
-                // fmt::print("找到了 {} status: {}\n", (*it).get_header("task_id"), (*it).get_header("status"));
+                // okec::print("找到了 {} status: {}\n", (*it).get_header("task_id"), (*it).get_header("status"));
                 (*it).set_header("status", "0");
                 bs->handle_next(); // 重新处理
             }
@@ -345,7 +343,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container) ->
         }
     });
 
-    // fmt::print("Info: {}\n", m_device_cache.dump());
+    // okec::print("Info: {}\n", m_device_cache.dump());
 
     // 捕获通过网络问询的信息，更新设备信息（能收到就一定存在资源信息）
     m_decision_device->set_request_handler(message_resource_information, 
@@ -381,7 +379,7 @@ auto decision_engine::initialize_device(base_station_container* bs_container) ->
     // 资源更新(外部所指定的BS不一定是第0个，所以要为所有BS设置消息以确保捕获)
     bs_container->set_request_handler(message_resource_changed, 
         [this](okec::base_station* bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) {
-            // fmt::print(fg(fmt::color::white), "At time {:.2f}s The decision engine got notified about device resource changes: {}\n", Simulator::Now().GetSeconds() , okec::packet_helper::to_string(packet));
+            // okec::print("At time {:.2f}s The decision engine got notified about device resource changes: {}\n", Simulator::Now().GetSeconds() , okec::packet_helper::to_string(packet));
             auto msg = message::from_packet(packet);
             auto es_resource = resource::from_msg_packet(packet);
             auto ip = msg.get_value("ip");
@@ -406,12 +404,11 @@ auto decision_engine::initialize_device(base_station_container* bs_container) ->
     bs_container->set_request_handler(message_conflict,
         [this](okec::base_station* bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) {
             auto task_item = task_element::from_msg_packet(packet);
-            // fmt::print("资源冲突\n{}\n", task_item.dump());
             auto& task_sequence = bs->task_sequence();
             if (auto it = std::ranges::find_if(task_sequence, [&task_item](auto const& item) {
                 return item.get_header("task_id") == task_item.get_header("task_id");
             }); it != std::end(task_sequence)) {
-                // fmt::print("找到了 {} status: {}\n", (*it).get_header("task_id"), (*it).get_header("status"));
+                // okec::print("找到了 {} status: {}\n", (*it).get_header("task_id"), (*it).get_header("status"));
                 (*it).set_header("status", "0");
                 bs->handle_next(); // 重新处理
             }

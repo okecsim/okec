@@ -78,7 +78,7 @@ auto worst_fit_decision_engine::make_decision(const task_element& header) -> res
             return TO_DOUBLE(lhs["cpu"]) < TO_DOUBLE(rhs["cpu"]);
         });
 
-    // fmt::print("edge max: {}\n", TO_STR(edge_max["ip"]));
+    // okec::print("edge max: {}\n", TO_STR(edge_max["ip"]));
     
     double cpu_demand = std::stod(header.get_header("cpu"));
     double cpu_supply = TO_DOUBLE(edge_max["cpu"]);
@@ -123,7 +123,7 @@ auto worst_fit_decision_engine::send(task_element t, std::shared_ptr<client_devi
         { "time_consuming", "" }
     });
 
-    // fmt::print("Received tasks:\n{}\n", t.j_data().dump(4));
+    // okec::print("Received tasks:\n{}\n", t.j_data().dump(4));
 
     // 不管本地，全部往边缘服务器卸载
     t.set_header("from_ip", okec::format("{:ip}", client->get_address()));
@@ -202,62 +202,6 @@ auto worst_fit_decision_engine::handle_next() -> void
         it->set_header("status", "1"); // 更改任务分发状态
         m_decision_device->write(msg.to_packet(), ns3::Ipv4Address(TO_STR(target["ip"]).c_str()), TO_INT(target["port"]));
     }
-    
-    // 分发任务列表，每次拿出第一个未分发的任务
-    // for (std::size_t i = 0; i < task_sequence.size(); ++i)
-    // {
-    //     // 任务尚未分发
-    //     if (!static_cast<int>(task_sequence_status[i]))
-    //     {
-    //         auto target = make_decision(task_sequence[i]);
-    //         if (target.is_null()) {
-    //             print_info(fmt::format("No device can handle the task({})!", task_sequence[i].get_header("task_id")));
-    //             message response {
-    //                 { "msgtype", "response" },
-    //                 { "task_id", task_sequence[i].get_header("task_id") },
-    //                 { "group", task_sequence[i].get_header("group") },
-    //                 { "device_type", "null" },
-    //                 { "device_address", "null" },
-    //                 { "processing_time", "null" }
-    //             };
-    //             auto from_ip = task_sequence[i].get_header("from_ip");
-    //             auto from_port = task_sequence[i].get_header("from_port");
-    //             m_decision_device->write(response.to_packet(), Ipv4Address(from_ip.c_str()), std::stoi(from_port));
-    //             // 分发失败也要进行清除操作
-    //             task_sequence.erase(std::next(task_sequence.begin(), i), std::next(task_sequence.begin(), i + 1));
-    //             task_sequence_status.erase(std::next(task_sequence_status.begin(), i), std::next(task_sequence_status.begin(), i + 1));
-    //             continue; // 继续尝试处理下一个
-    //         }
-
-    //         // print_info(fmt::format("Decision(task id:{}) is done. (target ip: {}, target port: {}.)", 
-    //         //     task_sequence[i].get_header("task_id"), TO_STR(target["ip"]), TO_INT(target["port"])));
-    //         // 计算并记录传输时间
-    //         Ptr<NetDevice> device = m_decision_device->get_node()->GetDevice(0);
-    //         Ptr<Channel> channel = device->GetChannel();
-    //         if (channel) {
-    //             StringValue band_width;
-    //             channel->GetAttribute("Delay", band_width);
-
-    //             DataRateValue dataRateValue;
-    //             device->GetAttribute("DataRate", dataRateValue);
-    //             DataRate dataRate = dataRateValue.Get();
-
-    //             // fmt::print("DataRate: {}Mbps, delay: {}ms\n", dataRate.GetBitRate() / 1000000, Time(band_width.Get()).GetMilliSeconds());
-    //         }
-
-    //         message msg;
-    //         msg.type(message_handling);
-    //         msg.content(task_sequence[i]);
-    //         msg.attribute("cpu_supply", TO_STR(target["cpu_supply"]));
-    //         // print_info(fmt::format("bs({:ip}) dispatchs the task(task_id = {}) to {}",
-    //         //     m_decision_device->get_address(), task_sequence[i].get_header("task_id"), TO_STR(target["ip"])));
-    //         m_decision_device->write(msg.to_packet(), ns3::Ipv4Address(TO_STR(target["ip"]).c_str()), TO_INT(target["port"]));
-            
-    //         task_sequence_status[i] = 1; // // 更改任务分发状态
-    //         task_sequence[i].set_header("status", "1");
-    //         break; // 若是继续处理下一个，处理任务的边缘设备资源变化信息可能还未收到，也许会导致错误决策
-    //     }
-    // }
 }
 
 auto worst_fit_decision_engine::train(const task &t) -> void
@@ -284,12 +228,6 @@ auto worst_fit_decision_engine::train(const task &t) -> void
 auto worst_fit_decision_engine::on_bs_decision_message(
     base_station *bs, ns3::Ptr<ns3::Packet> packet, const ns3::Address &remote_address) -> void
 {
-    // static bool first_time = true;
-    // auto ipv4_remote = InetSocketAddress::ConvertFrom(remote_address).GetIpv4();
-    // print_info(fmt::format("The base station[{:ip}] has received the decision request from {:ip}", bs->get_address(), ipv4_remote));
-
-    // fmt::print("Resource cache:\n{}\n", this->cache().dump(4));
-
     // task_element 为单位
     auto item = okec::task_element::from_msg_packet(packet);
     item.set_header("status", "0"); // 增加处理状态信息 0: 未处理 1: 已处理
@@ -314,7 +252,6 @@ auto worst_fit_decision_engine::on_bs_response_message(
     // log::success("bs({:ip}) has received a response from {:ip}", bs->get_address(), ipv4_remote);
 
     message msg(packet);
-    // fmt::print("{}\n", msg.dump());
     auto& task_sequence = bs->task_sequence();
     // auto& task_sequence_status = bs->task_sequence_status();
 
@@ -551,9 +488,9 @@ auto DiscreteEnv::trace_resource() -> void
     }
 
     // for (const auto& item : m_resources) {
-    //     file << fmt::format("At time {:.2f}s,{:ip}", Simulator::Now().GetSeconds(), item->get_address());
+    //     file << okec::format("At time {:.2f}s,{:ip}", Simulator::Now().GetSeconds(), item->get_address());
     //     for (auto it = item->begin(); it != item->end(); ++it) {
-    //         file << fmt::format(",{}: {}", it.key(), it.value());
+    //         file << okec::format(",{}: {}", it.key(), it.value());
     //     }
     //     file << "\n";
     // }

@@ -59,7 +59,7 @@ auto cloud_edge_end_default_decision_engine::make_decision(
         [](const device_cache::value_type& lhs, const device_cache::value_type& rhs) {
             return TO_DOUBLE(lhs["cpu"]) < TO_DOUBLE(rhs["cpu"]);
         });
-    // fmt::print("edge max: {}\n", TO_STR(edge_max["ip"]));
+    // okec::print("edge max: {}\n", TO_STR(edge_max["ip"]));
 
     double cpu_demand = std::stod(header.get_header("cpu"));
     double cpu_supply = TO_DOUBLE(edge_max["cpu"]);
@@ -67,7 +67,7 @@ auto cloud_edge_end_default_decision_engine::make_decision(
     double task_size = std::stod(header.get_header("size"));
     double u2b_transmission_delay = std::stod(header.get_header("transmission_delay"));
     double arrival_time = std::stod(header.get_header("arrival_time"));
-    double start_time = std::stod(fmt::format("{:.8f}", now::seconds())); // 保证位数一致，以防相减出现负数情况
+    double start_time = std::stod(okec::format("{:.8f}", now::seconds())); // 保证位数一致，以防相减出现负数情况
     double wait_time = start_time - arrival_time;
     okec::print("wait time: {}s\n", wait_time);
 
@@ -153,7 +153,7 @@ auto cloud_edge_end_default_decision_engine::send(
         { "wait_time", "" }
     });
 
-    // fmt::print("Received tasks:\n{}\n", t.j_data().dump(4));
+    // okec::print("Received tasks:\n{}\n", t.j_data().dump(4));
 
     // 获取 STA 的 PHY 和 MAC 层对象
     ns3::Ptr<ns3::NetDevice> device = client->get_node()->GetDevice(0);
@@ -301,12 +301,12 @@ auto cloud_edge_end_default_decision_engine::on_bs_decision_message(
     ns3::Ptr<ns3::Packet> packet,
     const ns3::Address &remote_address) -> void
 {
-    // fmt::print("Resource cache:\n{}\n", this->cache().dump(4));
+    // okec::print("Resource cache:\n{}\n", this->cache().dump(4));
 
     // task_element 为单位
     auto item = okec::task_element::from_msg_packet(packet);
     item.set_header("status", "0"); // 增加处理状态信息 0: 未处理 1: 已处理
-    item.set_header("arrival_time", fmt::format("{:.8f}", now::seconds())); // 增加任务到达时间
+    item.set_header("arrival_time", okec::format("{:.8f}", now::seconds())); // 增加任务到达时间
     bs->task_sequence(std::move(item));
 
     this->handle_next();

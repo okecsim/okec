@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	cmd.AddValue("task_num", "task number", task_num);
 	cmd.Parse(argc, argv);
 
-    fmt::print("edge_num: {}, task_num: {}\n", edge_num, task_num);
+    okec::print("edge_num: {}, task_num: {}\n", edge_num, task_num);
 
     olog::set_level(olog::level::all);
 

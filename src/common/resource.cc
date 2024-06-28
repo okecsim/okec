@@ -157,21 +157,21 @@ std::size_t resource_container::size() const
 
 auto resource_container::print(std::string title) -> void
 {
-    // fmt::print("{0:=^{1}}\n", title, 150);
+    // okec::print("{0:=^{1}}\n", title, 150);
 
     // int index = 1;
     // for (const auto& item : m_resources)
     // {
-    //     fmt::print("[{:>3}] ", index++);
+    //     okec::print("[{:>3}] ", index++);
     //     for (auto it = item->begin(); it != item->end(); ++it)
     //     {
-    //         fmt::print("{}: {} ", it.key(), it.value());
+    //         okec::print("{}: {} ", it.key(), it.value());
     //     }
 
-    //     fmt::print("\n");
+    //     okec::print("\n");
     // }
 
-    // fmt::print("{0:=^{1}}\n", "", 150);
+    // okec::print("{0:=^{1}}\n", "", 150);
 }
 
 auto resource_container::trace_resource() -> void
@@ -193,9 +193,9 @@ auto resource_container::trace_resource() -> void
     }
 
     // for (const auto& item : m_resources) {
-    //     file << fmt::format("At time {:.2f}s,{:ip}", Simulator::Now().GetSeconds(), item->get_address());
+    //     file << okec::format("At time {:.2f}s,{:ip}", Simulator::Now().GetSeconds(), item->get_address());
     //     for (auto it = item->begin(); it != item->end(); ++it) {
-    //         file << fmt::format(",{}: {}", it.key(), it.value());
+    //         file << okec::format(",{}: {}", it.key(), it.value());
     //     }
     //     file << "\n";
     // }

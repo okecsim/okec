@@ -97,7 +97,7 @@ auto edge_device::write(ns3::Ptr<ns3::Packet> packet, ns3::Ipv4Address destinati
 
 auto edge_device::on_get_resource_information(ns3::Ptr<ns3::Packet> packet, const ns3::Address& remote_address) -> void
 {
-    // fmt::print("on_get_resource_information from {:ip}\n", InetSocketAddress::ConvertFrom(remote_address).GetIpv4());
+    // okec::print("on_get_resource_information from {:ip}\n", InetSocketAddress::ConvertFrom(remote_address).GetIpv4());
     auto device_resource = get_resource();
     if (!device_resource || device_resource->empty())
         return; // 没有安装资源，或资源为空，都不返回任何消息

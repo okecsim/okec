@@ -71,8 +71,6 @@ inline auto print(okec::color text_color, std::format_string<Args...>&& fmt, Arg
     constexpr std::string_view solid_square_format = "\u2588 ";
     auto indent = std::formatted_size(time_format, okec::now::seconds()) +
                   std::formatted_size(solid_square_format);
-    // // fmt::print(fg(fmt::color::gray), time_format, ns3::Simulator::Now().GetSeconds());
-    // // fmt::print(fg(fmt::rgb(std::to_underlying(text_color))), solid_square_format);
     print(okec::color::gray, std::format(time_format, okec::now::seconds()));
     print(text_color, solid_square_format);
 
@@ -83,10 +81,8 @@ inline auto print(okec::color text_color, std::format_string<Args...>&& fmt, Arg
             | std::views::chunk(winsize.col - indent)
             | std::views::join_with(std::format("\n{:{}}", "", indent - 1))
             | std::views::common;
-        // fmt::print(fg(fmt::rgb(std::to_underlying(text_color))), "{}\n", std::string(data.begin(), data.end()));
         print(text_color, std::format("{}\n", std::string(data.begin(), data.end())));
     } else {
-        // fmt::print(fg(fmt::rgb(std::to_underlying(text_color))), "{}\n", content);
         print(text_color, "{}\n", content);
     }
 }
