@@ -58,7 +58,7 @@ struct std::formatter<ns3::Ipv4Address> {
         uint32_t address = ipv4Address.Get();
         oss << ((address >> 24) & 0xff) << "." << ((address >> 16) & 0xff) << "."
             << ((address >> 8) & 0xff) << "." << ((address >> 0) & 0xff);
-        return std::vformat_to(ctx.out(), "{}", std::make_format_args(oss.str()));
+        return std::vformat_to(ctx.out(), "{}", std::make_format_args(okec::unmove(oss.str())));
     }
 };
 

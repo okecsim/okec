@@ -165,7 +165,7 @@ namespace okec {
         error = 0xE96A63,                    // rgb(233,106,99)
     };
 
-    inline auto rgb(color c) -> std::tuple<int, int, int> {
+    inline constexpr auto rgb(color c) -> std::tuple<int, int, int> {
         auto value = static_cast<uint32_t>(c);
         int r = (value >> 16) & 0xFF;
         int g = (value >> 8) & 0xFF;
@@ -173,7 +173,7 @@ namespace okec {
         return std::make_tuple(r, g, b);
     }
 
-    inline auto fg(color c) -> std::string {
+    inline constexpr auto fg(color c) -> std::string {
         auto [r, g, b] = rgb(c);
         return std::format("\033[38;2;{};{};{}m", r, g, b);
     }
@@ -181,12 +181,6 @@ namespace okec {
     inline constexpr auto end_color() {
         return "\033[0m";
     }
-
-    // inline constexpr auto info    = fmt::rgb(119,249,246);
-    // inline constexpr auto warning = fmt::rgb(251,248,103);
-    // inline constexpr auto debug   = fmt::rgb(204,139,245);
-    // inline constexpr auto success = fmt::rgb(132,253,97);
-    // inline constexpr auto error   = fmt::rgb(233,105,104);
 
 } // namespace okec
 

@@ -21,6 +21,6 @@
 #include <okec/utils/log.h>
 #include <okec/utils/random.hpp>
 #include <okec/utils/read_csv.h>
-#include <okec/utils/visulizer.hpp>
+#include <okec/utils/visualizer.hpp>
 
 #endif // OKEC_HPP_

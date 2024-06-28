@@ -8,8 +8,9 @@
 // Licenced under Apache-2.0 license. See LICENSE.txt for details.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef OKEC_VISULIZER_HPP_
-#define OKEC_VISULIZER_HPP_
+#ifndef OKEC_VISUALIZER_HPP_
+#define OKEC_VISUALIZER_HPP_
+
 
 #include "matplotlibcpp.h"
 
@@ -35,4 +36,4 @@ namespace okec
     }
 }
 
-#endif // OKEC_VISULIZER_HPP_
+#endif // OKEC_VISUALIZER_HPP_
