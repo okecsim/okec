@@ -140,7 +140,7 @@ auto cloud_edge_end_default_decision_engine::send(
     task_element t,
     std::shared_ptr<client_device> client) -> bool
 {
-    static double launch_delay = 0.3;
+    static double launch_delay = .0; // 0.3;
 
     client->response_cache().emplace_back({
         { "task_id", t.get_header("task_id") },
@@ -191,8 +191,8 @@ auto cloud_edge_end_default_decision_engine::send(
         // log::warning("Transmission time: {}s, Propagation delay: {}s", task_size / transmission_rate, u2b_distance / mps_speed);
         // log::warning("EndDevice({:ip}) position: ({},{},{}), U2B Distance: {}m, U2B Total Transmission Delay: {}s", 
         //     client->get_address(), pos.x, pos.y, pos.z, u2b_distance, transmission_delay);
-        log::warning("EndDevice({:ip}) position: ({:.8f},{:.8f}), U2B Distance: {:.8f}m", 
-            client->get_address(), pos.x, pos.y, u2b_distance);
+        log::warning("EndDevice({:ip}) position: ({:.4f},{:.4f},{:.4f}), U2B Distance: {:.8f}m", 
+            client->get_address(), pos.x, pos.y, pos.z, u2b_distance);
 
         t.set_header("transmission_delay", std::to_string(transmission_delay));
         
@@ -201,10 +201,11 @@ auto cloud_edge_end_default_decision_engine::send(
         msg.content(t);
         const auto bs = self->get_decision_device();
         
-        client->write(msg.to_packet(), bs->get_address(), bs->get_port());
+        // client->write(msg.to_packet(), bs->get_address(), bs->get_port());
     };
     ns3::Simulator::Schedule(ns3::Seconds(launch_delay), write);
-    launch_delay += 0.01;
+    // launch_delay += 0.01;
+    launch_delay += 1.0;
 
     return true;
 }

@@ -52,7 +52,6 @@ int main(int argc, char **argv)
     olog::set_level(olog::level::all);
 
     okec::simulator sim;
-    // sim.enable_visualizer();
 
     // Create 1 base station
     okec::base_station_container base_stations(sim, 1);
@@ -73,29 +72,17 @@ int main(int argc, char **argv)
     okec::cloud_edge_end_model model;
     okec::network_initializer(model, user_devices, base_stations.get(0), cloud);
 
-    auto mobility = std::make_shared<okec::ap_sta_mobility>();
-    // mobility->install(user_devices);     // STA
-    mobility->test(user_devices, "data/ns2mobility.tcl");
-    mobility->install(base_stations[0]); // AP
-    // mobility->set_position(user_devices[0], okec::rand_range(5.0, 10.0), okec::rand_range(10.0, 20.0), .0);
-    mobility->set_position(base_stations[0], 0, 0, 0);
-    mobility->set_position(cloud, 1000000, 0, 0);
-
-    auto pos = user_devices[0]->get_position();
-    okec::print("x: {}, y: {}, z: {}", pos.x, pos.y, pos.z);
-
-
     // Set the location
-    // base_stations.get(0)->set_position(0, 0, 0);
-    // cloud.set_position(1000000, 0, 0);
+    base_stations.get(0)->set_position(0, 0, 0);
+    cloud.set_position(100, 0, 0);
 
     // Initialize the resources for each edge server.
     okec::resource_container resources(edge_servers.size());
-    // resources.initialize([](auto res) {
-    //     res->attribute("cpu", okec::rand_range(2.4, 2.8).to_string());
-    // });
+    resources.initialize([](auto res) {
+        res->attribute("cpu", okec::rand_range(2.4, 2.8).to_string());
+    });
     // resources.save_to_file("resource-" + std::to_string(resources.size()) + ".json");
-    resources.load_from_file("data/resource-" + std::to_string(resources.size()) + ".json");
+    // resources.load_from_file("data/resource-" + std::to_string(resources.size()) + ".json");
     okec::print("resources:\n{:rs}\n", resources);
 
     // Install each resource on each edge server.
@@ -123,5 +110,7 @@ int main(int argc, char **argv)
     auto user1 = user_devices.get_device(0);
     co_spawn(sim, offloading(user1, t));
 
+
+    sim.enable_visualizer();
     sim.run();
 }

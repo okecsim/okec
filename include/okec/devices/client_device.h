@@ -123,6 +123,9 @@ public:
         return m_devices.end();
     }
 
+    auto operator[](std::size_t index) -> pointer_type;
+    auto operator()(std::size_t index) -> pointer_type;
+
     auto get_device(std::size_t index) -> pointer_type;
 
     auto size() -> std::size_t;

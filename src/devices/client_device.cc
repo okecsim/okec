@@ -157,6 +157,16 @@ auto client_device::write(ns3::Ptr<ns3::Packet> packet, ns3::Ipv4Address destina
     m_udp_application->write(packet, destination, port);
 }
 
+auto client_device_container::operator[](std::size_t index) -> pointer_type
+{
+    return this->get_device(index);
+}
+
+auto client_device_container::operator()(std::size_t index) -> pointer_type
+{
+    return this->get_device(index);
+}
+
 auto client_device_container::get_device(std::size_t index) -> pointer_type
 {
     return m_devices[index];

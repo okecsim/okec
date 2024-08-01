@@ -23,14 +23,16 @@ message("\
 find_package(Torch REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(ns3 3.41 COMPONENTS libcore REQUIRED)
-find_package(PythonLibs REQUIRED)
+
+include(FindPython3)
+find_package(Python3 COMPONENTS Interpreter Development)
 
 # message(${TORCH_CXX_FLAGS})
 message("Welcome to the installation wizard for OKEC")
 message(STATUS "Found Torch: ${TORCH_FOUND}")
 message(STATUS "Found nlohmann_json: ${nlohmann_json_FOUND}")
 message(STATUS "Found ns3: ${ns3_FOUND}")
-message(STATUS "Found python libs: ${PYTHON_INCLUDE_DIRS}")
+message(STATUS "Found python libs: ${Python3_INCLUDE_DIRS}")
 
 # Found all source files
 file(GLOB_RECURSE SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/*.cc")
@@ -48,13 +50,13 @@ target_sources(okec PRIVATE ${SOURCE_FILES})
 target_include_directories(okec PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${PYTHON_INCLUDE_DIRS}
+    ${Python3_INCLUDE_DIRS}
 )
 
 
 target_link_libraries(okec PUBLIC
     ${TORCH_LIBRARIES}
-    ${PYTHON_LIBRARIES}
+    ${Python3_LIBRARIES}
     nlohmann_json::nlohmann_json
     ns3::libcore ns3::libinternet ns3::libpoint-to-point ns3::libcsma ns3::libwifi ns3::libvisualizer
 )

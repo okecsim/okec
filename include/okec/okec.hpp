@@ -15,6 +15,7 @@
 #include <okec/algorithms/classic/cloud_edge_end_default_decision_engine.h>
 #include <okec/algorithms/machine_learning/DQN_decision_engine.h>
 #include <okec/common/simulator.h>
+#include <okec/mobility/ap_sta_mobility.hpp>
 #include <okec/network/multiple_and_single_LAN_WLAN_network_model.hpp>
 #include <okec/network/multiple_LAN_WLAN_network_model.hpp>
 #include <okec/network/cloud_edge_end_model.hpp>

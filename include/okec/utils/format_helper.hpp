@@ -39,6 +39,13 @@ inline auto print(std::format_string<Args...>&& fmt, Args&&... args)
     std::cout << okec::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...);
 }
 
+template <typename... Args>
+inline auto println(std::format_string<Args...>&& fmt, Args&&... args)
+    -> void {
+    print(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...);
+    std::cout << '\n';
+}
+
 } // namespace okec
 
 

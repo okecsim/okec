@@ -91,41 +91,41 @@ struct cloud_edge_end_model {
         wifiDevice->GetMac()->SetBssid(bssid, linkId);
         ////////////////////////////////////////
 
-        ns3::MobilityHelper mobility;
+        // ns3::MobilityHelper mobility;
 
-        mobility.SetPositionAllocator("ns3::GridPositionAllocator",
-                                    "MinX",
-                                    ns3::DoubleValue(0.0),
-                                    "MinY",
-                                    ns3::DoubleValue(0.0),
-                                    "DeltaX",
-                                    ns3::DoubleValue(5.0),
-                                    "DeltaY",
-                                    ns3::DoubleValue(10.0),
-                                    "GridWidth",
-                                    ns3::UintegerValue(100),
-                                    "LayoutType",
-                                    ns3::StringValue("RowFirst"));
+        // mobility.SetPositionAllocator("ns3::GridPositionAllocator",
+        //                             "MinX",
+        //                             ns3::DoubleValue(0.0),
+        //                             "MinY",
+        //                             ns3::DoubleValue(0.0),
+        //                             "DeltaX",
+        //                             ns3::DoubleValue(5.0),
+        //                             "DeltaY",
+        //                             ns3::DoubleValue(10.0),
+        //                             "GridWidth",
+        //                             ns3::UintegerValue(100),
+        //                             "LayoutType",
+        //                             ns3::StringValue("RowFirst"));
 
-        // 设置节点移动速度范围
-        ns3::Ptr<ns3::UniformRandomVariable> speedVar = ns3::CreateObject<ns3::UniformRandomVariable>();
-        speedVar->SetAttribute("Min", ns3::DoubleValue(5.0));
-        speedVar->SetAttribute("Max", ns3::DoubleValue(10.0));
+        // // 设置节点移动速度范围
+        // ns3::Ptr<ns3::UniformRandomVariable> speedVar = ns3::CreateObject<ns3::UniformRandomVariable>();
+        // speedVar->SetAttribute("Min", ns3::DoubleValue(5.0));
+        // speedVar->SetAttribute("Max", ns3::DoubleValue(10.0));
 
-        mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
-                                "Bounds",
-                                ns3::RectangleValue(ns3::Rectangle(-100, 100, -100, 100)),
-                                "Speed",
-                                ns3::PointerValue(speedVar));
-        mobility.Install(wifiStaNodes);
+        // mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+        //                         "Bounds",
+        //                         ns3::RectangleValue(ns3::Rectangle(-100, 100, -100, 100)),
+        //                         "Speed",
+        //                         ns3::PointerValue(speedVar));
+        // mobility.Install(wifiStaNodes);
 
-        // 随机设置每个用户设备的位置
-        for (auto client = clients.begin(); client != clients.end(); ++client) {
-            (*client)->set_position(rand_range(5.0, 10.0), rand_range(10.0, 20.0), .0);
-        }
+        // // 随机设置每个用户设备的位置
+        // for (auto client = clients.begin(); client != clients.end(); ++client) {
+        //     (*client)->set_position(rand_range(5.0, 10.0), rand_range(10.0, 20.0), .0);
+        // }
 
-        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-        mobility.Install(wifiApNode);
+        // mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        // mobility.Install(wifiApNode);
 
         ns3::InternetStackHelper stack;
         stack.Install(edgeNodes);
